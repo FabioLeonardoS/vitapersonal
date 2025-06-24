@@ -1,37 +1,14 @@
-networks:
-  # Redes que já criamos manualmente
-  traefik-public:
-    external: true
-  vitapersonal-net:
-    external: true
+# ... outros serviços ...
 
-services:
-  # Serviço do Backend (já está funcionando)
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: vitapersonal-backend
-    restart: unless-stopped
-    networks:
-      - traefik-public
-      - vitapersonal-net
-    env_file:
-      - ./backend/.env
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=traefik-public"
-      - "traefik.http.routers.vitapersonal-api.rule=Host(`api.vitapersonal.newsnow.blog`)"
-      - "traefik.http.routers.vitapersonal-api.entrypoints=websecure"
-      - "traefik.http.routers.vitapersonal-api.tls=true"
-      - "traefik.http.routers.vitapersonal-api.tls.certresolver=letsencryptresolver"
-      - "traefik.http.services.vitapersonal-api.loadbalancer.server.port=3000"
-
-  # --- NOVO SERVIÇO DO FRONTEND ---
+  # --- SERVIÇO DO FRONTEND (COM AJUSTE) ---
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # --- ADICIONE ESTA SEÇÃO ---
+      args:
+        VITE_API_URL: https://api.vitapersonal.newsnow.blog
+      # -------------------------
     container_name: vitapersonal-frontend
     restart: unless-stopped
     networks:
@@ -39,10 +16,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
-      # Roteador para o domínio principal, sem o "api."
       - "traefik.http.routers.vitapersonal-frontend.rule=Host(`vitapersonal.newsnow.blog`)"
       - "traefik.http.routers.vitapersonal-frontend.entrypoints=websecure"
       - "traefik.http.routers.vitapersonal-frontend.tls=true"
       - "traefik.http.routers.vitapersonal-frontend.tls.certresolver=letsencryptresolver"
-      # Aponta para a porta 80 do container Nginx
       - "traefik.http.services.vitapersonal-frontend.loadbalancer.server.port=80"
