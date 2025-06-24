@@ -1,5 +1,10 @@
+# Ignorar dependências, pois serão instaladas dentro do container
 node_modules
-.env.local
+
+# Ignorar arquivo de ambiente, pois será injetado pelo Docker Compose
+.env
+
+# Ignorar logs e arquivos do Git
+npm-debug.log
 .git
-dist
-build
+.gitignore
