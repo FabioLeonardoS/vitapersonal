@@ -17,8 +17,4 @@ COPY . .
 EXPOSE 3000
 
 # Comando de inicialização
-<<<<<<< HEAD
 CMD ["npm", "start"]
-=======
-CMD ["npm", "start"]
->>>>>>> 3e930a14edd2fc5afd7459ef6b94de06da9950e8
