@@ -1,16 +1,12 @@
-version: '3.8'
-
 networks:
-  traefik_default:
+  # Redes que já criamos manualmente
+  traefik-public:
     external: true
   vitapersonal-net:
-    driver: bridge
-
-volumes:
-  vitapersonal-mysql:
     external: true
 
 services:
+  # Serviço do Backend (já está funcionando)
   backend:
     build:
       context: ./backend
@@ -18,28 +14,35 @@ services:
     container_name: vitapersonal-backend
     restart: unless-stopped
     networks:
-      - traefik_default
+      - traefik-public
       - vitapersonal-net
-    depends_on:
-      - mysql
     env_file:
       - ./backend/.env
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_default"
+      - "traefik.docker.network=traefik-public"
       - "traefik.http.routers.vitapersonal-api.rule=Host(`api.vitapersonal.newsnow.blog`)"
       - "traefik.http.routers.vitapersonal-api.entrypoints=websecure"
       - "traefik.http.routers.vitapersonal-api.tls=true"
-      - "traefik.http.routers.vitapersonal-api.tls.certresolver=myresolver"
+      - "traefik.http.routers.vitapersonal-api.tls.certresolver=letsencryptresolver"
       - "traefik.http.services.vitapersonal-api.loadbalancer.server.port=3000"
 
-  mysql:
-    image: mysql:8.0
-    container_name: vitapersonal-db
+  # --- NOVO SERVIÇO DO FRONTEND ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vitapersonal-frontend
     restart: unless-stopped
-    env_file:
-      - ./mysql.env  # <-- MUDANÇA IMPORTANTE: Carrega as senhas daqui
-    volumes:
-      - vitapersonal-mysql:/var/lib/mysql
     networks:
-      - vitapersonal-net
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # Roteador para o domínio principal, sem o "api."
+      - "traefik.http.routers.vitapersonal-frontend.rule=Host(`vitapersonal.newsnow.blog`)"
+      - "traefik.http.routers.vitapersonal-frontend.entrypoints=websecure"
+      - "traefik.http.routers.vitapersonal-frontend.tls=true"
+      - "traefik.http.routers.vitapersonal-frontend.tls.certresolver=letsencryptresolver"
+      # Aponta para a porta 80 do container Nginx
+      - "traefik.http.services.vitapersonal-frontend.loadbalancer.server.port=80"
