@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const authJwt = require('../../middleware/authJwt');
+const authJwt = require('../middleware/authJwt'); // Correção aqui
 
 router.get('/:id', [authJwt.verifyToken], userController.getUser);
 router.put('/:id', [authJwt.verifyToken], userController.updateUser);

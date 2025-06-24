@@ -1,23 +1,19 @@
 version: '3.8'
 
 networks:
-  # Rede para o Traefik se comunicar com os containers
   traefik_default:
     external: true
-  # Rede interna para a comunicação entre o backend e o banco de dados
   vitapersonal-net:
     driver: bridge
 
 volumes:
-  # Define o volume do MySQL como externo para que possamos usar o que já existe
   vitapersonal-mysql:
     external: true
 
 services:
-  # Serviço do Backend (sua API Node.js)
   backend:
     build:
-      context: ./backend  # Procura o Dockerfile na pasta 'backend'
+      context: ./backend
       dockerfile: Dockerfile
     container_name: vitapersonal-backend
     restart: unless-stopped
@@ -27,31 +23,23 @@ services:
     depends_on:
       - mysql
     env_file:
-      - ./backend/.env  # Carrega as variáveis de ambiente do arquivo .env
+      - ./backend/.env
     labels:
-      # --- Habilita o Traefik para este container ---
       - "traefik.enable=true"
-      # --- Rede ---
       - "traefik.docker.network=traefik_default"
-      # --- Roteador para tráfego HTTPS ---
-      - "traefik.http.routers.vitapersonal-api.rule=Host(`api.vitapersonal.newsnow.blog`)" # IMPORTANTE: SEU DOMÍNIO AQUI
+      - "traefik.http.routers.vitapersonal-api.rule=Host(`api.vitapersonal.newsnow.blog`)"
       - "traefik.http.routers.vitapersonal-api.entrypoints=websecure"
       - "traefik.http.routers.vitapersonal-api.tls=true"
       - "traefik.http.routers.vitapersonal-api.tls.certresolver=myresolver"
-      # --- Serviço que aponta para a porta interna da sua API ---
       - "traefik.http.services.vitapersonal-api.loadbalancer.server.port=3000"
 
-  # Serviço do Banco de Dados MySQL
   mysql:
     image: mysql:8.0
     container_name: vitapersonal-db
     restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: '*F4b1oPr15ss1L4@' # TROQUE POR UMA SENHA SEGURA
-      MYSQL_DATABASE: 'appvitapersonal'
-      MYSQL_USER: 'fabiop'
-      MYSQL_PASSWORD: 'F4b1oPr15s@s1L4' # TROQUE POR OUTRA SENHA SEGURA
+    env_file:
+      - ./mysql.env  # <-- MUDANÇA IMPORTANTE: Carrega as senhas daqui
     volumes:
-      - vitapersonal-mysql:/var/lib/mysql # Monta o volume para persistir os dados
+      - vitapersonal-mysql:/var/lib/mysql
     networks:
-      - vitapersonal-net # Apenas na rede interna, não precisa ser acessado de fora
+      - vitapersonal-net

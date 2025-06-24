@@ -1,34 +1,26 @@
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { sequelize } = require('../config/db');
-const db = require('../models');
+const User = require('../models/User'); // Correção aqui
+const { generateToken } = require('../utils/jwtUtils'); // Usando nossa função
 
 exports.register = async (req, res) => {
-  const { name, email, password, whatsapp } = req.body;
+  const { name, email, password, whatsapp, weight, height, age, waist, goal } = req.body;
 
   if (!name || !email || !password || !whatsapp) {
-    return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
+    return res.status(400).json({ message: 'Os campos nome, email, senha e whatsapp são obrigatórios.' });
   }
 
   try {
-    const existingUser = await db.User.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) return res.status(400).json({ message: 'E-mail já cadastrado.' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await db.User.create({
-      name,
-      email,
-      password: hashedPassword,
-      whatsapp,
-      weight: req.body.weight || null,
-      height: req.body.height || null,
-      age: req.body.age || null,
-      waist: req.body.waist || null,
-      goal: req.body.goal || 'Manter'
+    const newUser = await User.create({
+      name, email, password: hashedPassword, whatsapp, weight, height, age, waist, goal
     });
 
-    const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    res.json({ token, user: newUser });
+    const token = generateToken(newUser.id); // Usando nossa função
+    res.status(201).json({ token, user: { id: newUser.id, name: newUser.name } });
+
   } catch (err) {
     res.status(500).json({ message: 'Erro no servidor.', error: err.message });
   }
@@ -38,14 +30,15 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await db.User.findOne({ where: { email } });
+    const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).json({ message: 'Credenciais inválidas.' });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Senha incorreta.' });
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    res.json({ token, user });
+    const token = generateToken(user.id); // Usando nossa função
+    res.json({ token, user: { id: user.id, name: user.name } });
+
   } catch (err) {
     res.status(500).json({ message: 'Erro no servidor.', error: err.message });
   }

@@ -1,14 +1,15 @@
 const { Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize({
-  dialect: 'mysql',
-  host: process.env.DB_HOST || 'localhost',
-  username: process.env.DB_USER || 'fabio',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'appvitapersonal',
-  logging: false // Desative logs SQL durante o desenvolvimento
-});
-
+const sequelize = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST,
+    dialect: 'mysql',
+    logging: false, // Desative os logs do SQL no console
+  }
+);
 
 const connectDB = async () => {
   try {
