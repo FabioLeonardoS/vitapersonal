@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3001
-  }
+    // A porta 3002, como está no seu terminal
+    port: 3002, 
+  },
 });
