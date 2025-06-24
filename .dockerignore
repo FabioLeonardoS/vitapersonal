@@ -1,4 +1,16 @@
 node_modules
-npm-debug.log
 .env
 .git
+dist
+build
+.env.local
+.env.development
+.env.production
+.env.staging
+coverage
+tmp
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.log

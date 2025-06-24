@@ -23,7 +23,7 @@ vitapersonal/
 │   ├── package.json
 │   └── server.js
 │
-├── frontend/            # Opcional (React)
+├── frontend/            # Opcionalmente
 │   ├── public/
 │   ├── src/
 │   │   ├── App.jsx
@@ -31,5 +31,5 @@ vitapersonal/
 │   ├── package.json
 │   └── vite.config.js
 │
-├── README.md
-└── .gitignore
+├── docker-compose.yml    # Para subir backend, frontend e Traefik
+└── README.md             # Guia rápido de instalação

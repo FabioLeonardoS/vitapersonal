@@ -1,0 +1,61 @@
+version: '3'
+
+services:
+  vitapersonal-db:
+    image: mysql:8.0
+    container_name: vitapersonal-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: appvitapersonal
+      MYSQL_USER: fabiop
+      MYSQL_PASSWORD: suapassmysql
+    volumes:
+      - vitapersonal-mysql:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
+  vitapersonal-backend:
+    build: ./backend
+    container_name: vitapersonal-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=vitapersonal-db
+      - DB_USER=fabiop
+      - DB_PASSWORD=suapassmysql
+      - DB_NAME=appvitapersonal
+      - PORT=3000
+      - JWT_SECRET=vitapersonalsecretkey
+      - EVOLUTION_INSTANCE_ID=seu-instance-id
+      - EVOLUTION_API_KEY=sua-api-key
+    ports:
+      - "3000"
+    depends_on:
+      - vitapersonal-db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vitapersonal.rule=Host(`vitapersonal.newsnow.blog`)"
+      - "traefik.http.services.vitapersonal.loadbalancer.server.port=3000"
+
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=seu@email.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+
+volumes:
+  vitapersonal-mysql:
